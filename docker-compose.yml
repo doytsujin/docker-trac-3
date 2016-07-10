@@ -1,0 +1,25 @@
+postgres:
+    image: postgres:9.5
+    environment:
+        - "POSTGRES_USER=trac"
+        - "POSTGRES_DB=tracdb"
+        - "POSTGRES_PASSWORD=tracpwd"
+        - "LANG=en_US.utf8"
+
+trac:
+    build: .
+    links:
+        - postgres
+    ports:
+        - "8420:8000"
+    command: /usr/local/bin/create_start.sh
+#    volumes:
+#        - ./myproject:/project/myproject
+
+
+#wait:
+#    image: ddn0/wait
+#    environment:
+#        - "TARGETS=postgres:5432"
+#    links:
+#        - postgres
