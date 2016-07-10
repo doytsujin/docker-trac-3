@@ -10,6 +10,8 @@ svn export http://svn.osdn.jp/svnroot/shibuya-trac/plugins/ganttcalendarplugin/t
 cd trunk;python setup.py bdist_egg;easy_install dist/*.egg
 cd /home/trac/src/project/conf
 rm -rf /tmp/trunk
+
+
 #https://trac-hacks.org/wiki/GanttCalendarPlugin
 /usr/local/bin/edit_ini.py trac.ini add components ganttcalendar.admin.holidayadminpanel enabled
 /usr/local/bin/edit_ini.py trac.ini add components ganttcalendar.complete_by_close.completeticketobserver  enabled
@@ -41,6 +43,39 @@ sed -i -r 's/format\ =\ %%Y-%%m-%%d/format\ =\ %Y-%m-%d/' trac.ini
 /usr/local/bin/edit_ini.py trac.ini add ganttcalendar show_ticket_summary "false"
 /usr/local/bin/edit_ini.py trac.ini add ganttcalendar show_weekly_view "false"
 
+#fullblogplugin
+easy_install --always-unzip https://trac-hacks.org/svn/fullblogplugin/0.11
+/usr/local/bin/edit_ini.py trac.ini add components "tracfullblog.*" enabled
+/usr/local/bin/edit_ini.py trac.ini add mainnav "blog.order" 1.5
+/usr/local/bin/edit_ini.py trac.ini add fullblog default_postname "%%Y/%%m/%%d/%%H-%%M"
+sed -i -r 's/default_postname\ =\ %%Y\/%%m\/%%d\/%%H-%%M/default_postname\ =\ %Y\/%m\/%d\/%H-%M/' trac.ini
+/usr/local/bin/edit_ini.py trac.ini add fullblog num_items_front 20
+/usr/local/bin/edit_ini.py trac.ini add trac mainnav "wiki, blog, timeline, roadmap, browser, tickets, newticket, search"
+
+#upgrade
+cd /home/trac/src
+echo "[Docker] ready to upgrade trac"
+trac-admin /home/trac/src/project upgrade --no-backup
+trac-admin /home/trac/src/project wiki upgrade
+echo "[Docker] upgrade trac done"
+cd /home/trac/src/project/conf
+
+#markdown
+easy_install markdown2
+easy_install https://github.com/alexdo/trac-markdown-processor/zipball/master
+/usr/local/bin/edit_ini.py trac.ini add components "markdown.processor.*" enabled
+
+#plantuml
+#wget http://downloads.sourceforge.net/project/plantuml/plantuml.jar
+#wget http://sourceforge.net/projects/plantuml/files/plantuml.jar/download -O plantuml.jar
+easy_install https://trac-hacks.org/svn/plantumlmacro/trunk
+/usr/local/bin/edit_ini.py trac.ini add components "plantuml.*" enabled
+/usr/local/bin/edit_ini.py trac.ini add plantuml plantuml_jar "/home/trac/src/plantuml.jar"
+/usr/local/bin/edit_ini.py trac.ini add plantuml java_bin "/opt/jdk1.8.0_91/bin/java"
+
+
+#git
+/usr/local/bin/edit_ini.py trac.ini add components "tracopt.versioncontrol.git.*" enabled
 
 
 cd /home/trac/src

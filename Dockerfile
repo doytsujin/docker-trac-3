@@ -31,6 +31,7 @@ RUN cd $TRAC_HOME/src;
 COPY ./logo.png $TRAC_HOME/src/logo.png
 COPY ./create_start.sh /usr/local/bin/create_start.sh
 COPY ./edit_ini.py /usr/local/bin/edit_ini.py
+COPY ./plantuml.jar $TRAC_HOME/src/plantuml.jar
 
 #clean up
 RUN yum clean all; rm -rf /tmp/* /var/log/wtmp /var/log/btmp; history -c
