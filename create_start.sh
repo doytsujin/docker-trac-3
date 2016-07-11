@@ -1,4 +1,13 @@
 #!/bin/bash
+if [ -f provision_check ]; then
+    echo "container has been provisioned"
+    cd /home/trac/src
+    tracd --port 8000 ./project
+    exit 0
+fi
+
+echo "container has not been provisioned, install ..."
+touch provision_check
 sleep 10
 trac-admin ./project initenv "Project" postgres://trac:tracpwd@postgres/tracdb?client_encoding=utf8
 trac-admin ./project permission add anonymous TRAC_ADMIN
@@ -76,6 +85,11 @@ easy_install https://trac-hacks.org/svn/plantumlmacro/trunk
 
 #git
 /usr/local/bin/edit_ini.py trac.ini add components "tracopt.versioncontrol.git.*" enabled
+/usr/local/bin/edit_ini.py trac.ini add versioncontrol "allowed_repository_dir_prefixes" "/git"
+/usr/local/bin/edit_ini.py trac.ini add versioncontrol default_repository_type git
+
+#syntax
+easy_install pygments
 
 
 cd /home/trac/src

@@ -13,7 +13,8 @@ trac:
     ports:
         - "8420:8000"
     command: /usr/local/bin/create_start.sh
-#    volumes:
+    volumes:
+        - ~/:/git:ro
 #        - ./myproject:/project/myproject
 
 
