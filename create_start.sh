@@ -6,19 +6,55 @@ if [ -f provision_check ]; then
     exit 0
 fi
 
-echo "container has not been provisioned, install ..."
-touch provision_check
-sleep 10
-trac-admin ./project initenv "Project" postgres://trac:tracpwd@postgres/tracdb?client_encoding=utf8
-trac-admin ./project permission add anonymous TRAC_ADMIN
-cp ./logo.png ./project/htdocs/your_project_logo.png
-
+################################################################################
 #plugins
 cd /tmp
 svn export http://svn.osdn.jp/svnroot/shibuya-trac/plugins/ganttcalendarplugin/trunk
 cd trunk;python setup.py bdist_egg;easy_install dist/*.egg
 cd /home/trac/src/project/conf
 rm -rf /tmp/trunk
+#fullblogplugin
+easy_install --always-unzip https://trac-hacks.org/svn/fullblogplugin/0.11
+#markdown
+easy_install markdown2
+easy_install https://github.com/alexdo/trac-markdown-processor/zipball/master
+#plantuml
+easy_install https://trac-hacks.org/svn/plantumlmacro/trunk
+#syntax
+easy_install pygments
+#plugins
+################################################################################
+
+if [ -d /home/trac/src/project ]; then
+    if [ -f /home/trac/backup/postgres-db-backup.sql.gz ]; then
+        echo "trac-env:project exists"
+        set PGPASSWORD=tracpwd
+        cd /home/trac/backup
+        gzip -d postgres-db-backup.sql.gz;
+        psql -U trac -d tracdb -h postgres -f postgres-db-backup.sql < tracpwd
+
+        cd /home/trac/src
+        tracd --port 8000 ./project
+        exit 0
+    fi
+fi
+
+rm -rf /home/trac/backup/*
+rm -rf /home/trac/src/*
+
+echo "container has not been provisioned, install ..."
+touch provision_check
+#sleep 10
+trac-admin ./project initenv "Project" postgres://trac:tracpwd@postgres/tracdb?client_encoding=utf8
+trac-admin ./project permission add anonymous TRAC_ADMIN
+cp ./logo.png ./project/htdocs/your_project_logo.png
+
+##plugins
+#cd /tmp
+#svn export http://svn.osdn.jp/svnroot/shibuya-trac/plugins/ganttcalendarplugin/trunk
+#cd trunk;python setup.py bdist_egg;easy_install dist/*.egg
+#cd /home/trac/src/project/conf
+#rm -rf /tmp/trunk
 
 
 #https://trac-hacks.org/wiki/GanttCalendarPlugin
@@ -53,7 +89,8 @@ sed -i -r 's/format\ =\ %%Y-%%m-%%d/format\ =\ %Y-%m-%d/' trac.ini
 /usr/local/bin/edit_ini.py trac.ini add ganttcalendar show_weekly_view "false"
 
 #fullblogplugin
-easy_install --always-unzip https://trac-hacks.org/svn/fullblogplugin/0.11
+#move above
+#easy_install --always-unzip https://trac-hacks.org/svn/fullblogplugin/0.11
 /usr/local/bin/edit_ini.py trac.ini add components "tracfullblog.*" enabled
 /usr/local/bin/edit_ini.py trac.ini add mainnav "blog.order" 1.5
 /usr/local/bin/edit_ini.py trac.ini add fullblog default_postname "%%Y/%%m/%%d/%%H-%%M"
@@ -70,18 +107,19 @@ echo "[Docker] upgrade trac done"
 cd /home/trac/src/project/conf
 
 #markdown
-easy_install markdown2
-easy_install https://github.com/alexdo/trac-markdown-processor/zipball/master
+#move above
+#easy_install markdown2
+#easy_install https://github.com/alexdo/trac-markdown-processor/zipball/master
 /usr/local/bin/edit_ini.py trac.ini add components "markdown.processor.*" enabled
 
 #plantuml
-#wget http://downloads.sourceforge.net/project/plantuml/plantuml.jar
-#wget http://sourceforge.net/projects/plantuml/files/plantuml.jar/download -O plantuml.jar
-easy_install https://trac-hacks.org/svn/plantumlmacro/trunk
+##wget http://downloads.sourceforge.net/project/plantuml/plantuml.jar
+##wget http://sourceforge.net/projects/plantuml/files/plantuml.jar/download -O plantuml.jar
+#move above
+#easy_install https://trac-hacks.org/svn/plantumlmacro/trunk
 /usr/local/bin/edit_ini.py trac.ini add components "plantuml.*" enabled
 /usr/local/bin/edit_ini.py trac.ini add plantuml plantuml_jar "/home/trac/src/plantuml.jar"
 /usr/local/bin/edit_ini.py trac.ini add plantuml java_bin "/opt/jdk1.8.0_91/bin/java"
-
 
 #git
 /usr/local/bin/edit_ini.py trac.ini add components "tracopt.versioncontrol.git.*" enabled
@@ -89,8 +127,8 @@ easy_install https://trac-hacks.org/svn/plantumlmacro/trunk
 /usr/local/bin/edit_ini.py trac.ini add versioncontrol default_repository_type git
 
 #syntax
-easy_install pygments
-
+#move above
+#easy_install pygments
 
 cd /home/trac/src
 tracd --port 8000 ./project

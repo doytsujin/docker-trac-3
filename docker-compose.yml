@@ -15,7 +15,8 @@ trac:
     command: /usr/local/bin/create_start.sh
     volumes:
         - ~/:/git:ro
-#        - ./myproject:/project/myproject
+        - ./src:/home/trac/src
+        - ./backup:/home/trac/backup
 
 
 #wait:

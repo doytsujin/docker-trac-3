@@ -30,8 +30,14 @@ WORKDIR $TRAC_HOME/src
 RUN cd $TRAC_HOME/src; 
 COPY ./logo.png $TRAC_HOME/src/logo.png
 COPY ./create_start.sh /usr/local/bin/create_start.sh
+COPY ./backup_db.sh /usr/local/bin/backup_db.sh
 COPY ./edit_ini.py /usr/local/bin/edit_ini.py
 COPY ./plantuml.jar $TRAC_HOME/src/plantuml.jar
+RUN rpm -Uvh https://download.postgresql.org/pub/repos/yum/9.5/redhat/rhel-7-x86_64/pgdg-centos95-9.5-2.noarch.rpm;\
+    yum -y install postgresql95-server postgresql95;\
+    cd /usr/bin;\
+    mv pg_dump pg_dump.bak;\
+    ln -s /usr/pgsql-9.5/bin/pg_dump
 
 #clean up
 RUN yum clean all; rm -rf /tmp/* /var/log/wtmp /var/log/btmp; history -c
