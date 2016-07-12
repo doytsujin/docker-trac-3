@@ -1,63 +1,94 @@
 #!/bin/bash
+cd /home/trac/src
 if [ -f provision_check ]; then
-    echo "container has been provisioned"
-    cd /home/trac/src
-    tracd --port 8000 ./project
-    exit 0
+    if [ -d /home/trac/src/project ]; then
+        echo "container has been provisioned"
+        echo "start server..."
+        tracd --port 8000 ./project
+        exit 0
+    else
+        echo "provisioned but no project, remove provision_check file"
+        rm -rf provision_check
+    fi
 fi
 
 ################################################################################
+#install packages
+#google drive
+pip install --upgrade google-api-python-client==1.5.1
+
 #plugins
 echo 
 echo "Install plugins"
+
+#gannt
 echo 
 echo "  Install fullplogplugin"
 echo 
-cd /tmp
+cd /tmp;
 svn export http://svn.osdn.jp/svnroot/shibuya-trac/plugins/ganttcalendarplugin/trunk
 cd trunk;python setup.py bdist_egg;easy_install dist/*.egg;cd /tmp
 rm -rf /tmp/trunk
+
 #fullblogplugin
 echo 
 echo "  Install fullplogplugin"
 echo 
+cd /home/trac/src
 easy_install --always-unzip https://trac-hacks.org/svn/fullblogplugin/0.11
+
 #markdown
 echo 
 echo "  Install markdown"
 echo 
+cd /home/trac/src
 easy_install markdown2
 easy_install https://github.com/alexdo/trac-markdown-processor/zipball/master
+
 #plantuml
 echo 
 echo "  Install plantuml"
 echo 
+cd /home/trac/src
 easy_install https://trac-hacks.org/svn/plantumlmacro/trunk
+
 #syntax
 echo 
 echo "  Install syntax"
 echo 
+cd /home/trac/src
 easy_install pygments
 #plugins
 ################################################################################
 
 if [ -d /home/trac/src/project ]; then
     if [ -f /home/trac/backup/postgres-db-backup.sql.gz ]; then
-        echo "trac-env:project exists"
+        echo "trac-env: project exists"
         set PGPASSWORD=tracpwd
         cd /home/trac/backup
-        #dropdb -h postgres -U trac tracdb < tracpwd
-        #createdb -h postgres -U trac tracd < tracpwd
+        echo 
+        echo "drop DB"
+        dropdb tracdb -h postgres -U trac < tracpwd
+        echo "create DB"
+        createdb tracdb -h postgres -U trac < tracpwd
+        echo 
+        echo "restore DB"
+        echo 
         gzip -d postgres-db-backup.sql.gz;
         psql -U trac -d tracdb -h postgres -f postgres-db-backup.sql < tracpwd
+        echo 
+        echo "restore DB done"
+        echo 
 
         cd /home/trac/src
+        touch provision_check
+        echo "start restored trac server ..."
         tracd --port 8000 ./project
         exit 0
     fi
 fi
 
-rm -rf /home/trac/backup/*
+rm -rf /home/trac/backup/postgres-db-backup.*
 rm -rf /home/trac/src/*
 cd /home/trac/src
 
@@ -78,6 +109,7 @@ cp /home/trac/logo.png ./project/htdocs/your_project_logo.png
 
 #edit trac.ini
 cd /home/trac/src/project/conf
+/usr/local/bin/edit_ini.py trac.ini add header_logo link "/project/timeline"
 #https://trac-hacks.org/wiki/GanttCalendarPlugin
 /usr/local/bin/edit_ini.py trac.ini add components ganttcalendar.admin.holidayadminpanel enabled
 /usr/local/bin/edit_ini.py trac.ini add components ganttcalendar.complete_by_close.completeticketobserver  enabled
@@ -153,6 +185,7 @@ echo "[Docker] modify trac.ini config done"
 #move above
 #easy_install pygments
 
+echo "start new trac server ..."
 cd /home/trac/src
 tracd --port 8000 ./project
 
