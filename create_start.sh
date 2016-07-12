@@ -30,6 +30,8 @@ if [ -d /home/trac/src/project ]; then
         echo "trac-env:project exists"
         set PGPASSWORD=tracpwd
         cd /home/trac/backup
+        #dropdb -h postgres -U trac tracdb < tracpwd
+        #createdb -h postgres -U trac tracd < tracpwd
         gzip -d postgres-db-backup.sql.gz;
         psql -U trac -d tracdb -h postgres -f postgres-db-backup.sql < tracpwd
 
