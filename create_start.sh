@@ -8,19 +8,35 @@ fi
 
 ################################################################################
 #plugins
+echo 
+echo "Install plugins"
+echo 
+echo "  Install fullplogplugin"
+echo 
 cd /tmp
 svn export http://svn.osdn.jp/svnroot/shibuya-trac/plugins/ganttcalendarplugin/trunk
-cd trunk;python setup.py bdist_egg;easy_install dist/*.egg
-cd /home/trac/src/project/conf
+cd trunk;python setup.py bdist_egg;easy_install dist/*.egg;cd /tmp
 rm -rf /tmp/trunk
 #fullblogplugin
+echo 
+echo "  Install fullplogplugin"
+echo 
 easy_install --always-unzip https://trac-hacks.org/svn/fullblogplugin/0.11
 #markdown
+echo 
+echo "  Install markdown"
+echo 
 easy_install markdown2
 easy_install https://github.com/alexdo/trac-markdown-processor/zipball/master
 #plantuml
+echo 
+echo "  Install plantuml"
+echo 
 easy_install https://trac-hacks.org/svn/plantumlmacro/trunk
 #syntax
+echo 
+echo "  Install syntax"
+echo 
 easy_install pygments
 #plugins
 ################################################################################
@@ -43,13 +59,14 @@ fi
 
 rm -rf /home/trac/backup/*
 rm -rf /home/trac/src/*
+cd /home/trac/src
 
 echo "container has not been provisioned, install ..."
 touch provision_check
 #sleep 10
 trac-admin ./project initenv "Project" postgres://trac:tracpwd@postgres/tracdb?client_encoding=utf8
 trac-admin ./project permission add anonymous TRAC_ADMIN
-cp ./logo.png ./project/htdocs/your_project_logo.png
+cp /home/trac/logo.png ./project/htdocs/your_project_logo.png
 
 ##plugins
 #cd /tmp
@@ -59,6 +76,8 @@ cp ./logo.png ./project/htdocs/your_project_logo.png
 #rm -rf /tmp/trunk
 
 
+#edit trac.ini
+cd /home/trac/src/project/conf
 #https://trac-hacks.org/wiki/GanttCalendarPlugin
 /usr/local/bin/edit_ini.py trac.ini add components ganttcalendar.admin.holidayadminpanel enabled
 /usr/local/bin/edit_ini.py trac.ini add components ganttcalendar.complete_by_close.completeticketobserver  enabled
@@ -108,6 +127,7 @@ trac-admin /home/trac/src/project wiki upgrade
 echo "[Docker] upgrade trac done"
 cd /home/trac/src/project/conf
 
+echo "[Docker] modify trac.ini config"
 #markdown
 #move above
 #easy_install markdown2
@@ -120,13 +140,14 @@ cd /home/trac/src/project/conf
 #move above
 #easy_install https://trac-hacks.org/svn/plantumlmacro/trunk
 /usr/local/bin/edit_ini.py trac.ini add components "plantuml.*" enabled
-/usr/local/bin/edit_ini.py trac.ini add plantuml plantuml_jar "/home/trac/src/plantuml.jar"
+/usr/local/bin/edit_ini.py trac.ini add plantuml plantuml_jar "/home/trac/plantuml.jar"
 /usr/local/bin/edit_ini.py trac.ini add plantuml java_bin "/opt/jdk1.8.0_91/bin/java"
 
 #git
 /usr/local/bin/edit_ini.py trac.ini add components "tracopt.versioncontrol.git.*" enabled
 /usr/local/bin/edit_ini.py trac.ini add versioncontrol "allowed_repository_dir_prefixes" "/git"
 /usr/local/bin/edit_ini.py trac.ini add versioncontrol default_repository_type git
+echo "[Docker] modify trac.ini config done"
 
 #syntax
 #move above

@@ -10,8 +10,8 @@ trac:
     build: .
     links:
         - postgres
-    ports:
-        - "8420:8000"
+    #ports:
+    #    - "8420:8000"
     command: /usr/local/bin/create_start.sh
     volumes:
         - ~/:/git:ro
